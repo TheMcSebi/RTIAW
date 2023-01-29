@@ -7,9 +7,7 @@
 #include "Shapes/Sphere.h"
 
 namespace RTIAW::Render {
-void Renderer::SetScene(Scenes scene) {
-  m_sceneType = scene;
-
+void Renderer::LoadScene() {
   m_scene.Clear();
 
   switch (m_sceneType) {
@@ -21,7 +19,8 @@ void Renderer::SetScene(Scenes scene) {
 
     m_camera = std::make_unique<Camera>(orientation, 20.0f, AspectRatio(), aperture, dist_to_focus);
 
-    m_scene.Add(Shapes::Sphere(point3(0, -1000, 0), 1000.0f), Materials::Lambertian(color(0.5, 0.5, 0.5)));
+    // m_scene.Add(Shapes::Sphere(point3(0, -1000, 0), 1000.0f), Materials::Lambertian(color(0.5, 0.5, 0.5)));
+    m_scene.Add(Shapes::Plane(point3(0, 0, 0), glm::vec3(0, 1, 0)), Materials::Lambertian(color(0.5, 0.5, 0.5)));
 
     for (int a = -11; a < 11; a++) {
       for (int b = -11; b < 11; b++) {
@@ -58,7 +57,7 @@ void Renderer::SetScene(Scenes scene) {
 
     const auto lookDir = orientation.lookfrom - orientation.lookat;
     const auto dist_to_focus = std::sqrt(glm::dot(lookDir, lookDir));
-    constexpr auto aperture = 1.0f;
+    constexpr auto aperture = 0.5f;
 
     m_camera = std::make_unique<Camera>(orientation, 20.0f, AspectRatio(), aperture, dist_to_focus);
 
@@ -70,7 +69,8 @@ void Renderer::SetScene(Scenes scene) {
     m_scene.Add(Shapes::Sphere(point3(1.0, 0.0, -1.0), 0.5f), Materials::Metal(color(0.8, 0.6, 0.2), 0.0f));
   } break;
   case Scenes::TestScene: {
-    Camera::CameraOrientation orientation{point3(0, 2, 13), point3(0, 0, 0), vec3(0, 1, 0)};
+    // Camera::CameraOrientation orientation{point3(0, 2, 13), point3(0, 0, 0), vec3(0, 1, 0)};
+    Camera::CameraOrientation orientation{point3(0, 0, 13), point3(0, 0, 0), vec3(0, 1, 0)};
 
     const auto lookDir = orientation.lookfrom - orientation.lookat;
     const auto dist_to_focus = std::sqrt(glm::dot(lookDir, lookDir));
@@ -78,10 +78,21 @@ void Renderer::SetScene(Scenes scene) {
 
     m_camera = std::make_unique<Camera>(orientation, 20.0f, AspectRatio(), aperture, dist_to_focus);
 
-    auto material = Materials::Lambertian(color(0.4, 0.2, 0.1));
-    m_scene.Add(Shapes::Sphere(point3(0, 0, -2), 1.0f), material);
+    auto material = Materials::Lambertian(color(0.8, 0.2, 0.1));
     m_scene.Add(Shapes::Sphere(point3(-1, 0, 0), 1.0f), material);
-    m_scene.Add(Shapes::Sphere(point3(1, 0, -4), 1.0f), material);
+    // m_scene.Add(Shapes::Sphere(point3(0, 0, -2), 1.0f), material);
+
+    m_scene.Add(Shapes::Rectangle({point3(0.5, -1.0, -2.0), point3(-1.5, 1.0, -2.0), glm::vec3(1.5, 0.0, -2.0)}),
+                material);
+
+    m_scene.Add(Shapes::Parallelogram({point3(2.0, -1.0, -4.0), point3(1.5, -0.5, -5.0), glm::vec3(2.5, -0.5, -5.0)}),
+                material);
+
+    m_scene.Add(Shapes::Rectangle({point3(3.0, -1.0, -4.0), point3(3.0, 0.0, -4.0), glm::vec3(4.0, -1.0, -4.0)}),
+                material);
+
+    auto plane_material = Materials::Lambertian(color(0.6, 0.6, 0.6));
+    m_scene.Add(Shapes::Plane(point3(0.0, -1.2, 0.0), glm::vec3(0.0, 1.0, 0.0)), plane_material);
   } break;
   default:
     throw(std::runtime_error("Invalid scene selected"));

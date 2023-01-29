@@ -23,31 +23,35 @@ public:
   ~Renderer();
 
   void SetImageSize(unsigned int x, unsigned int y);
-  void SetTargetBuffer(uint8_t *const buffer) { m_renderBuffer = buffer; }
-  void SetScene(Scenes scene = Scenes::DefaultScene);
+  void SetScene(Scenes scene = Scenes::DefaultScene) { m_sceneType = scene; };
 
-  void SetSamplesPerPixel(unsigned int nSamples) { m_samplesPerPixel = nSamples; }
-  void SetMaxRayBounces(unsigned int nBounces) { m_maxRayDepth = nBounces; }
+  void SetSamplesPerPixel(unsigned int nSamples) { samplesPerPixel = nSamples; }
+  void SetMaxRayBounces(unsigned int nBounces) { maxRayDepth = nBounces; }
 
   void StartRender();
   void StopRender();
 
   [[nodiscard]] Scenes Scene() const { return m_sceneType; }
   [[nodiscard]] RenderState State() const { return m_state; }
+  [[nodiscard]] const void *ImageBuffer() const { return m_renderBuffer.empty() ? nullptr : m_renderBuffer.data(); }
 
+  unsigned int samplesPerPixel = 64;
+  unsigned int maxRayDepth = 12;
+  unsigned int lastRenderTimeMS = 0;
+  
 private:
   std::shared_ptr<spdlog::logger> m_logger;
 
   glm::uvec2 m_imageSize{0, 0};
-  unsigned int m_samplesPerPixel = 32;
-  unsigned int m_maxRayDepth = 10;
 
   Scenes m_sceneType{Scenes::DefaultScene};
   HittableObjectList m_scene;
+  void LoadScene();
+
   RenderState m_state = RenderState::Ready;
 
   // render buffer
-  uint8_t *m_renderBuffer = nullptr;
+  std::vector<uint8_t> m_renderBuffer{};
 
   // main rendering thread
   std::thread m_renderingThread;
@@ -63,10 +67,9 @@ private:
   };
   std::vector<Quad> SplitImage(unsigned int quadSize = 100) const;
   // actual internal implementation
-  void Render(uint8_t *buffer);
+  void Render();
   color ShootRay(const Ray &ray, unsigned int depth);
-  void WritePixelToBuffer(uint8_t *buffer, unsigned int ix, unsigned int iy, unsigned int samples_per_pixel,
-                          color pixel_color) const;
+  void WritePixelToBuffer(unsigned int ix, unsigned int iy, unsigned int samples_per_pixel, color pixel_color);
 
   // rng stuff
   std::mt19937 m_rnGenerator{};
